@@ -1,64 +1,211 @@
 # scRNA_seq
 
-I have been given the following task:
 
-Using Frozen PBMCs (Donor A), Cell Ranger 1.1.0 dataset available at 10x Genomics, please perform its integration with the whole blood dataset from GEO GSE149938 using scanpy (preferably, but please use R if it is more convenient for you). Please organize all the commands and results in the form of Jupyter notebook. Use the available pre-calculated filtered expression matrices. Briefly discuss the differences and similarities of the two datasets on gene and cell level.
+## Project outline
 
-What does this mean? And how am I going to do this? First lets break down the main buzz word.
+Using Frozen PBMCs (Donor A), Cell Ranger 1.1.0 dataset available at 10x Genomics, 
+please perform its integration with the whole blood dataset from GEO GSE149938 using 
+scanpy (preferably, but please use R if it is more convenient for you). 
 
-## Intergation
+Please organize all the commands and results in the form of Jupyter notebook. 
+Use the available pre-calculated filtered expression matrices.
+Briefly discuss the differences and similarities of the two datasets on gene and cell level.
 
-A description of scRNA-Seq intergtation from the  
+## Data
 
-Here is a little on intergration taken from the lab that makes the R scRNA-seq analysis program [Seurat](https://satijalab.org/seurat/articles/integration_introduction.html). The joint analysis of two or more single-cell datasets poses unique challenges. In particular, identifying cell populations that are present across multiple datasets can be problematic under standard workflows. Seurat v4 includes a set of methods to match (or ‘align’) shared cell populations across datasets. These methods first identify cross-dataset pairs of cells that are in a matched biological state (‘anchors’), can be used both to correct for technical differences between datasets (i.e. batch effect correction), and to perform comparative scRNA-seq analysis of across experimental conditions. Though I am not sure what experimental conditions we would be looking at in this excercise? The PBMC dataset is from single Donor were the GSE149938 is from 21 healthy donors so there might be something there. It depends really what metadata we can get on the 21 healthy donors and donor A.
+### Donor A PBMC Cell Ranger
 
-According to a [HBC training website](https://hbctraining.github.io/scRNA-seq_online/lessons/06_integration.html) its important too look at the clustering without integration before deciding whether we need to perform any alignment. Do not just always perform integration because you think there might be differences - explore the data. If we had performed the normalization on both conditions together in a Seurat object and visualized the similarity between cells, we would have seen condition-specific clustering.
+The [Donor A PBMC Cell Ranger](https://www.10xgenomics.com/resources/datasets/frozen-pbm-cs-donor-a-1-standard-1-1-0) 
+contains Peripheral Blood Mononuclear cells are the blood cells with a round nucleus
+which includes T, B, NK and monocytes cells. Excludes erythrocytes (red blood
+cells) which have no nuclei and the granulocyte which have multi-lobed nuclei.
+The PBMC are extracted using a hydrophobic colloid and density gradient 
+centrifuge. Plasma the top layer, PBMCs the middle layer and 
+polynuclear cell the bottom layer. 
+A typical composition of PBMC includes 70% T cells, 15% monocyte/macrophages,
+10% B cells and 15% NK cells. Platelets are typically present in PBMC
+samples, though they do play a role in the immune response they do not 
+contain a nucleus. 
 
-So in other things the first steps in this anlaysis will be to perform normlization and clustering on the two datasets. 
+Looking at the 10x analysis page, the PBMC donor A sample looks very similar to 
+other 10x PBMC sample in the Seurat tutorial.  The scRNA-Seq data contains 
+3000 cells. 
 
-## A little about the data 
+Pre-filtered 10x data downloaded and placed in the data folder.
 
-The PBMC data comes from [Zheng et al, “Massively parallel digital transcriptional profiling of single cells”](https://www.nature.com/articles/ncomms14049)
-and can be downloaded from [10x](https://www.10xgenomics.com/resources/datasets/frozen-pbm-cs-donor-a-1-standard-1-1-0). PBMCs include lymphocytes (T cells, B cells, and NK cells), monocytes, and dendritic cells. In humans, the frequencies of these populations vary across individuals, but typically, lymphocytes are in the range of 70–90 %, monocytes from 10 to 20 %, while dendritic cells are rare, accounting for only 1–2 %. Analysis of PBMC is often performed with single-cell B-cell receptor sequencing (scBCR-seq) and single-cell T-cell receptor sequencing (scTCR-seq) based on the scRNA-seq libraries.
-Analysis of the scBCR-seq and scTCR-seq could be done with [immcantation](https://immcantation.readthedocs.io/en/stable/tutorials/10x_tutorial.html).
+```
 
-The GSE149938 data is a tad more complex. An experimental summary can be found [here](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149938) and the data consists of the transcriptomes of 7,643 human blood cells covering 32 immunophenotypic cell types across 21 healthy donors. The orignal paper can be found [here](https://academic.oup.com/nsr/article/8/3/nwaa180/5896476?login=false). As always with GEO getting the file you want is a run around, at least for me.  
+wget -0 data/frozen_pbmc_donor_a_filtered_gene_bc_matrices.tar.gz \
+https://cf.10xgenomics.com/samples/cell-exp/1.1.0/frozen_pbmc_donor_a/frozen_pbmc_donor_a_filtered_gene_bc_matrices.tar.gz
 
+```
 
+### GSE149938 
 
+GSE149938 is the Gene Expression Omnibus ID for a [large scale scRNA-Seq
+analysis of 7,463 immunophenotypic blood cells across 21 healthy donors](https://academic.oup.com/nsr/article/8/3/nwaa180/5896476?login=false).
+This is interesting as the almost twice as many cells as Donor A but 21 times 
+as many donors. The paper is really interested in lncRNAs and the role 
+they play in the cell differentiation, which is interesting as most
+marker-based PBMC annotation I've looked at focuses on well known proteins 
+like xxx and xxx for xxxx. This analysis of protein coding 
+and lncRNA expression and transcription factor networking 
+went into creating a cell type prediction model which 
+can be found [online](http://scrna.sklehabc.com/). The prediction model 
+takes a csv file as input with cells as columns and gene names as rows.
+Would be cool to try to automatically annotate some of PBMC donor A cells.
 
-## What is scanpy
-Scanpy is a scalable toolkit for analyzing single-cell gene expression data built jointly with anndata. It includes preprocessing, visualization, clustering, trajectory inference and differential expression testing. The Python-based implementation efficiently deals with datasets of more than one million cells.
-
-It is like a python version of Suerat with AnnData being like python version of SumerizedExperiment. A way to keep count data across samples in the same place as experimental information about the samples. 
-
-The tutorials break the scanpy pipeline into 5 parts:
-
-### Clustering 
-
-Going from counts to cell types using clustering and biomarker gene expression. This is the main part of the pipeline. 
-
-### Visualization
-
-Mostly making the types of figures seen in the Seurat clustering pipeline plus a dendrogram. No really intreast to learn matplotlib when I've spent so much time on ggplot2 in R so will mostly just go through this quick.
-
-### Trajectory inference
-
-According to the wiki 
-
-Trajectory inference or pseudotemporal ordering is a computational technique used in single-cell transcriptomics to determine the pattern of a dynamic process experienced by cells and then arrange cells based on their progression through the process. Single-cell protocols have much higher levels of noise than bulk RNA-seq, so a common step in a single-cell transcriptomics workflow is the clustering of cells into subgroups. Clustering can contend with this inherent variation by combining the signal from many cells, while allowing for the identification of cell types. However, some differences in gene expression between cells are the result of dynamic processes such as the cell cycle, cell differentiation, or response to an external stimuli. Trajectory inference seeks to characterize such differences by placing cells along a continuous path that represents the evolution of the process rather than dividing cells into discrete clusters.
-
-Not needed for integration so will come back to another time. 
-
-### Integrating datasets
-
-### Spatial data
-Don't need to do this for the assignment so giving a miss for now but might tackle it with another datastet another time 
+The paper uses a R package abcCellmap which combines Seurat and 
+[scmap](https://scmap.sanger.ac.uk/scmap/), 
+made by Vladimir Kiselev at the Sanger.
 
 
-## Usefull Links
+Immunophenotypic cells includes mononuclear cells in Donor A PBMC 
+as well as the Hematopoietic stem/progenitor cells (HSPCs). HSPCs
+are the progenitor of both lymphoid and myeloid cells. This 
+is because both cells from PBMC and harvested bone marrow were 
+collected. Bone marrow contains 
+CD34+ HSPCs, B cells, NK cells, T cells, monocytes, neutrophils
+and erythrocytes. PBMC contains regulatory B, naive B, memory B, 
+cytotoxic NK, cytokine NK and T cells. 
 
-I have found a juptyer notebook by the Sanger center on the scanpy [pipeline](https://github.com/cellgeni/notebooks/blob/master/notebooks/new-10kPBMC-Scanpy.ipynb). It goes through filtering which I should be able to skip but the normlization, clustering and biomarker selection shoul be good.
+Since there should be no neutrophils, erythrocyte or HSPC cells in the PBMC 
+I will only download the use these cells. The
+names of the T cells, NK cell, B cells and monocytes can be downloaded with 
+the following commands.
 
-The scanpy [tutorials](https://scanpy-tutorials.readthedocs.io/en/latest/index.html) are also pretty good.
+```
+# B cell
+wget -O data/GSM4793029_B.txt.gz \
+https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4793nnn/GSM4793029/suppl/GSM4793029%5FB%2Etxt%2Egz
+
+# T Cell
+wget -O data/GSM4793031_T.txt.gz \
+https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4793nnn/GSM4793031/suppl/GSM4793031%5FT%2Etxt%2Egz
+
+# NK Cells
+wget -O data/GSM4793030_NK.txt.gz \
+https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4793nnn/GSM4793030/suppl/GSM4793030%5FNK%2Etxt%2Egz
+
+
+# Monoctyes 
+wget -O data/GSM4793032_Mo.txt.gz \
+https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4793nnn/GSM4793032/suppl/GSM4793032%5FMo%2Etxt%2Egz
+
+gunzip data/*.txt.gz
+
+```
+
+The count matrix contains 7643 cells as rows and 19812 genes as cols  
+
+```
+
+# download the counts 
+
+
+# extract gene names and add the string sample to make it sure its read
+# correctly 
+
+
+# gene names are symbols the same as Donor A but Donor A is hg19 and 
+# GSE149938 is hg32 so there may be differences 
+
+# extract cell names 
+awk -F , '{print $1}' data/GSE149938_umi_matrix.csv > tables/GSE149938_cells.csv
+
+
+# combine lists of cells of intereast 
+
+cat data/GSM47930* >> tables/cells_of_interest.txt
+
+# a weird unicode symbol on the cells_of_interest.txt
+# means the R script src/fix_cell_list.R was used to load and write out
+# table. Intreastingly there are 9384 cell names in cell_list.txt and 
+# there are only 7643 cells in the study. Some cells have two names as they 
+# exist as parts of two clusters or annotation groups. Once filtered
+# tables/subset_GSE149938_umi_matrix.csv contains 2965 cells. Slightly 
+# less then half of the cells which makes sense looking at the figures.
+# the src/fix_cell_list.R also creates a single line csv file 
+# tables/cell_subset_GSE149938_umi_matrix.csv which the filtered gene
+# counts are added to
+
+
+# filter cells
+
+grep -F -f tables/edited_cells_of_interest.txt data/GSE149938_umi_matrix.csv > \
+tables/subset_GSE149938_umi_matrix.csv
+
+
+shuf -n 500 tables/subset_GSE149938_umi_matrix.csv > tables/sampled_subsetGSE149938_umi_matrix.csv
+
+
+cat tables/sampled_subsetGSE149938_umi_matrix.csv >> tables/cell_subset_GSE149938_umi_matrix.csv
+
+
+
+```
+
+
+## Differential expressed genes
+
+Looking at the differential expressed genes and marking some interesting 
+changes.
+
+Unfortunately genome annotation issue have effected results of the 
+differential expression analysis 
+
+
+CD14+ Mono
+PBMC	BMPC	gene	difference
+0	4.75573081481199	DEFA3	4.75573081481199
+4.68972869624599	0	MALAT1	4.68972869624599
+0	4.45796807543227	LTF	4.45796807543227
+4.60506807878426	0.239142906500432	FTH1	4.36592517228382
+3.875024555039	0	MT-CO1	3.875024555039
+3.64851714961893	0	MT-CO3	3.64851714961893
+
+MALAT and mito genes expressed in PBMC
+
+FGCR3A+ Mono same thing
+PBMC	BMPC	gene	difference
+5.23070746500656	0	MALAT1	5.23070746500656
+4.13871751591105	0	MT-CO1	4.13871751591105
+5.0360257029716	1.12012322932071	FTH1	3.91590247365089
+3.70419854799964	0	MT-CO3	3.70419854799964
+3.441687191202	0	MT-ND1	3.441687191202
+3.80748201893328	0.397288232701891	RPL21	3.41019378623139
+3.27968763970721	0	MT-CO2	3.27968763970721
+3.16751203836744	0	MT-ND2	3.16751203836744
+3.08820988516419	0	MT-CYB	3.08820988516419
+2.92918295912805	0	MT-ND4	2.92918295912805
+2.69346946429975	0	RP11-290F20.3	2.69346946429975
+2.65647495762294	0	MT-ATP6	2.65647495762294
+
+Cytokine NK
+PBMC	BMPC	gene	difference
+5.69792855262776	0	MALAT1	5.69792855262776
+4.10262797747209	0	MT-CO1	4.10262797747209
+3.75335866596993	0	MT-CO3	3.75335866596993
+3.43445220981025	0	MT-CO2	3.43445220981025
+3.34051283221371	0	MT-ND4	3.34051283221371
+3.23573716777162	0	MT-CYB	3.23573716777162
+3.14548925657424	0	MT-ND1	3.14548925657424
+3.11488581116175	0	MT-ND2	3.11488581116175
+
+
+Cytotoix NK
+PBMC	BMPC	gene	difference
+5.34917416196294	0	MALAT1	5.34917416196294
+3.87570041656866	0	MT-CO1	3.87570041656866
+3.77083407684561	0	MT-CO3	3.77083407684561
+3.55916817555595	0	MT-ND1	3.55916817555595
+3.23621892269994	0	MT-ND2	3.23621892269994
+3.21924351344834	0	MT-CO2	3.21924351344834
+3.08736159820905	0	MT-ND4	3.08736159820905
+
+
+MALAT is a lncRNA that has been linked to vitamin deficiency and cancer 
+Coud 
+
+
 
