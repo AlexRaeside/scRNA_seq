@@ -3,6 +3,8 @@
 
 ## Project outline
 
+*Objective*
+
 Using Frozen PBMCs (Donor A), Cell Ranger 1.1.0 dataset available at 10x Genomics, 
 please perform its integration with the whole blood dataset from GEO GSE149938 using 
 scanpy (preferably, but please use R if it is more convenient for you). 
@@ -10,6 +12,14 @@ scanpy (preferably, but please use R if it is more convenient for you).
 Please organize all the commands and results in the form of Jupyter notebook. 
 Use the available pre-calculated filtered expression matrices.
 Briefly discuss the differences and similarities of the two datasets on gene and cell level.
+
+*Conclusion*
+
+The datasets were integrated correcty using Seurat so the labels established in the whole 
+blood dataset could be used to annotate the cells the PBMC donor A. The nodualrity of the 
+results were also improved with cell types in a sinlge cluster when PBMC was analysed independetly 
+
+
 
 ## Data
 
