@@ -1,5 +1,15 @@
 # scRNA_seq
 
+### The tidy up bracnh 
+
+Hello and welcome to the tidy up branch. I have a somewhat okay nice basic project here but it needs tidying up. 
+How am i going to to do this? The project can be split into three parts, four if end up doing a Quarto report. 
+
+First part is looking at the PBMC Donor A data. The code is straight forward Seurat pipeline. Loading 10x ranger
+data and peforming manual annotation on single cell dataset. Im not intreasted in the QC as the 10x webiste has that fine.
+What I need to do is tidy the code and output figures showing the expression of all the marker genes I used in manual annoatation. 
+
+
 
 ## Project outline
 
